@@ -1,18 +1,17 @@
-// --- CONFIGURAÇÃO DO FIREBASE (Copie do Console do Firebase) ---
+// --- CONFIGURAÇÃO DO FIREBASE (SEUS DADOS REAIS) ---
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "SEU_PROJETO.firebaseapp.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_PROJECT_ID.appspot.com",
-    messagingSenderId: "NUMERO",
-    appId: "ID"
+  apiKey: "AIzaSyBWOK0YMzg8ZKc-dIJk0xYfeuQOahoMEfQ",
+  authDomain: "task-manager-portfolio-4b57f.firebaseapp.com",
+  projectId: "task-manager-portfolio-4b57f",
+  storageBucket: "task-manager-portfolio-4b57f.firebasestorage.app",
+  messagingSenderId: "379822677100",
+  appId: "1:379822677100:web:c2d5f4a736f8b30a46cc49"
 };
 
-// Importa funções do Firebase via CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+// Adicionei 'updateDoc' nos imports
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, updateDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Inicia o App
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -20,58 +19,80 @@ const taskList = document.getElementById('taskList');
 const btnAdd = document.getElementById('btnAdd');
 const input = document.getElementById('taskInput');
 
-// 1. CREATE (Adicionar Tarefa)
+// Função para mostrar alertas bonitos
+const showToast = (msg, type = "success") => {
+    Toastify({
+        text: msg,
+        duration: 3000,
+        gravity: "top",
+        position: "center",
+        style: {
+            background: type === "error" ? "#ff4444" : "#00ff99",
+            color: type === "error" ? "#fff" : "#000",
+        }
+    }).showToast();
+};
+
+// 1. CREATE
 btnAdd.addEventListener('click', async () => {
     const text = input.value;
-    if (text === "") return alert("Escreva algo!");
+    if (text === "") return showToast("⚠️ Digite uma tarefa!", "error");
 
     try {
         await addDoc(collection(db, "tarefas"), {
             nome: text,
+            concluida: false, // Novo campo para controlar o status
             data: new Date()
         });
-        input.value = ""; // Limpa input
+        input.value = "";
+        showToast("Tarefa adicionada!");
     } catch (e) {
         console.error("Erro: ", e);
+        showToast("Erro ao salvar.", "error");
     }
 });
 
-// 2. READ (Ler Tarefas em Tempo Real)
+// 2. READ (Com Status)
 const q = query(collection(db, "tarefas"), orderBy("data", "desc"));
 
 onSnapshot(q, (snapshot) => {
-    taskList.innerHTML = ""; // Limpa a lista para não duplicar
+    taskList.innerHTML = "";
     
     if(snapshot.empty) {
-        taskList.innerHTML = "<p>Nenhuma tarefa ainda.</p>";
+        taskList.innerHTML = "<p style='text-align:center; color:#444; margin-top:20px;'>Nenhuma tarefa... que tal adicionar uma? 🚀</p>";
+        return;
     }
 
     snapshot.forEach((docSnap) => {
         const data = docSnap.data();
         const id = docSnap.id;
+        
+        // Verifica se está concluída para adicionar a classe CSS
+        const isDone = data.concluida ? "done" : "";
 
         const li = document.createElement('li');
-        li.className = 'task-item';
+        li.className = `task-item ${isDone}`;
         li.innerHTML = `
-            <span>${data.nome}</span>
-            <button class="btn-delete" data-id="${id}">
+            <span class="task-text" onclick="toggleTask('${id}', ${data.concluida})">${data.nome}</span>
+            <button class="btn-delete" onclick="deleteTask('${id}')">
                 <i class="fas fa-trash"></i>
             </button>
         `;
         taskList.appendChild(li);
     });
-
-    // Adiciona evento de DELETE aos botões criados
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', handleDelete);
-    });
 });
 
-// 3. DELETE (Apagar Tarefa)
-async function handleDelete(e) {
-    // Pega o ID que guardamos no botão
-    const id = e.currentTarget.getAttribute('data-id');
-    if(confirm("Tem certeza que quer apagar?")) {
-        await deleteDoc(doc(db, "tarefas", id));
-    }
-}
+// 3. UPDATE (Novo: Marcar como Feito)
+window.toggleTask = async (id, currentStatus) => {
+    const docRef = doc(db, "tarefas", id);
+    await updateDoc(docRef, {
+        concluida: !currentStatus // Inverte o status (True vira False, e vice-versa)
+    });
+};
+
+// 4. DELETE
+window.deleteTask = async (id) => {
+    // Usamos Toastify com confirmação simples visual
+    await deleteDoc(doc(db, "tarefas", id));
+    showToast("Tarefa removida!", "error");
+};

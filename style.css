@@ -56,3 +56,13 @@ button:hover { opacity: 0.8; }
 }
 .btn-delete { background: transparent; color: #ff4444; padding: 5px; font-size: 1.1rem; }
 .loading { text-align: center; color: #666; }
+
+/* --- Estilo de Tarefa Concluída --- */
+.task-text { cursor: pointer; flex-grow: 1; transition: 0.3s; }
+.task-text:hover { color: #fff; }
+
+.task-item.done { border-left-color: #444; opacity: 0.6; }
+.task-item.done .task-text { text-decoration: line-through; color: #666; }
+
+/* Ajuste no Toastify (Bibliotena de alertas) */
+.toastify { font-family: 'Inter', sans-serif; font-weight: bold; border-radius: 8px; }
