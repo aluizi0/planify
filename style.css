@@ -2,67 +2,60 @@ body {
     background-color: #0b0b0b;
     color: #e0e0e0;
     font-family: 'Inter', sans-serif;
-    display: flex;
-    justify-content: center;
-    padding-top: 50px;
+    margin: 0; padding: 20px;
 }
 
-.container {
+h1 { text-align: center; color: #00ff99; margin-bottom: 20px; }
+
+/* Barra de Input no topo */
+.input-bar {
+    display: flex; gap: 10px; justify-content: center;
+    background: #111; padding: 20px; border-radius: 12px;
+    margin-bottom: 30px; border: 1px solid #222; flex-wrap: wrap;
+}
+
+input, select, button {
+    padding: 12px; border-radius: 6px; border: 1px solid #333;
+    background: #000; color: #fff; outline: none;
+}
+button { background: #00ff99; color: #000; font-weight: bold; cursor: pointer; border: none; }
+button:hover { transform: scale(1.05); }
+
+/* O GRID DA SEMANA */
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 Colunas Iguais */
+    gap: 10px;
     width: 100%;
-    max-width: 500px;
-    background: #111;
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid #222;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-h1 { text-align: center; color: #00ff99; margin-bottom: 5px; }
-p { text-align: center; color: #888; margin-bottom: 30px; font-size: 0.9rem; }
-
-.input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-input {
-    width: 100%;
-    padding: 12px;
-    background: #000;
-    border: 1px solid #333;
-    color: #fff;
-    border-radius: 6px;
-    outline: none;
+/* Estilo de cada Coluna */
+.day-column {
+    background: #111; border: 1px solid #222; border-radius: 8px;
+    min-height: 400px; display: flex; flex-direction: column;
 }
-input:focus { border-color: #00ff99; }
 
-button {
-    background: #00ff99;
-    color: #000;
-    border: none;
-    padding: 0 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
+.day-column h3 {
+    text-align: center; background: #1a1a1a; margin: 0; padding: 10px;
+    border-bottom: 1px solid #00ff99; font-size: 0.9rem; text-transform: uppercase;
 }
-button:hover { opacity: 0.8; }
 
-.task-list { list-style: none; padding: 0; }
-.task-item {
-    background: #1a1a1a;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-left: 3px solid #00ff99;
+.tasks-container { padding: 10px; flex-grow: 1; }
+
+/* O Cartão da Tarefa dentro da coluna */
+.task-card {
+    background: #222; padding: 10px; margin-bottom: 8px; border-radius: 6px;
+    border-left: 3px solid #00ff99; position: relative;
 }
-.btn-delete { background: transparent; color: #ff4444; padding: 5px; font-size: 1.1rem; }
-.loading { text-align: center; color: #666; }
+.task-time { font-size: 0.75rem; color: #00ff99; font-weight: bold; display: block; margin-bottom: 4px; }
+.task-name { font-size: 0.9rem; word-wrap: break-word; }
 
-/* --- Estilo de Tarefa Concluída --- */
-.task-text { cursor: pointer; flex-grow: 1; transition: 0.3s; }
-.task-text:hover { color: #fff; }
+.btn-delete-mini {
+    position: absolute; top: 5px; right: 5px;
+    color: #ff4444; background: none; border: none; cursor: pointer; padding: 0;
+}
 
-.task-item.done { border-left-color: #444; opacity: 0.6; }
-.task-item.done .task-text { text-decoration: line-through; color: #666; }
-
-/* Ajuste no Toastify (Bibliotena de alertas) */
-.toastify { font-family: 'Inter', sans-serif; font-weight: bold; border-radius: 8px; }
+/* Responsivo para Celular (Vira lista um embaixo do outro) */
+@media (max-width: 1000px) {
+    .week-grid { grid-template-columns: 1fr; } /* 1 coluna só */
+}
