@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD Task Manager</title>
+    <title>Planify</title>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
@@ -12,9 +12,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container-fluid">
+    <div id="login-screen" class="login-container">
+        <h1>Planify</h1>
+        <p>Organize sua rotina. Seus dados salvos na nuvem.</p>
+        <button id="btnLogin" class="btn-google">
+            <i class="fab fa-google"></i> Entrar com Google
+        </button>
+    </div>
+
+    <div id="app-screen" class="container-fluid hidden">
         <header>
+            <div class="user-info">
+                <img id="userPhoto" src="" alt="User">
+                <span id="userName">Usuário</span>
+                <button id="btnLogout" class="btn-logout">Sair</button>
+            </div>
+            
             <h1>Cronograma Semanal</h1>
+            
             <div class="input-bar">
                 <select id="dayInput">
                     <option value="seg">Segunda</option>
@@ -25,44 +40,20 @@
                     <option value="sab">Sábado</option>
                     <option value="dom">Domingo</option>
                 </select>
-                
                 <input type="time" id="timeInput" required>
-                
                 <input type="text" id="taskInput" placeholder="Atividade (ex: Academia)" autocomplete="off">
-                
                 <button id="btnAdd"><i class="fas fa-plus"></i></button>
             </div>
         </header>
 
         <div class="week-grid">
-            <div class="day-column" id="col-seg">
-                <h3>Segunda</h3>
-                <div class="tasks-container" id="list-seg"></div>
-            </div>
-            <div class="day-column" id="col-ter">
-                <h3>Terça</h3>
-                <div class="tasks-container" id="list-ter"></div>
-            </div>
-            <div class="day-column" id="col-qua">
-                <h3>Quarta</h3>
-                <div class="tasks-container" id="list-qua"></div>
-            </div>
-            <div class="day-column" id="col-qui">
-                <h3>Quinta</h3>
-                <div class="tasks-container" id="list-qui"></div>
-            </div>
-            <div class="day-column" id="col-sex">
-                <h3>Sexta</h3>
-                <div class="tasks-container" id="list-sex"></div>
-            </div>
-            <div class="day-column" id="col-sab">
-                <h3>Sábado</h3>
-                <div class="tasks-container" id="list-sab"></div>
-            </div>
-            <div class="day-column" id="col-dom">
-                <h3>Domingo</h3>
-                <div class="tasks-container" id="list-dom"></div>
-            </div>
+            <div class="day-column" id="col-seg"><h3>Segunda</h3><div class="tasks-container" id="list-seg"></div></div>
+            <div class="day-column" id="col-ter"><h3>Terça</h3><div class="tasks-container" id="list-ter"></div></div>
+            <div class="day-column" id="col-qua"><h3>Quarta</h3><div class="tasks-container" id="list-qua"></div></div>
+            <div class="day-column" id="col-qui"><h3>Quinta</h3><div class="tasks-container" id="list-qui"></div></div>
+            <div class="day-column" id="col-sex"><h3>Sexta</h3><div class="tasks-container" id="list-sex"></div></div>
+            <div class="day-column" id="col-sab"><h3>Sábado</h3><div class="tasks-container" id="list-sab"></div></div>
+            <div class="day-column" id="col-dom"><h3>Domingo</h3><div class="tasks-container" id="list-dom"></div></div>
         </div>
     </div>
 

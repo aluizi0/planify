@@ -59,3 +59,32 @@ button:hover { transform: scale(1.05); }
 @media (max-width: 1000px) {
     .week-grid { grid-template-columns: 1fr; } /* 1 coluna só */
 }
+
+/* Classes Utilitárias */
+.hidden { display: none !important; }
+
+/* Tela de Login Centralizada */
+.login-container {
+    height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+}
+.btn-google {
+    background: #fff; color: #333; font-size: 1.2rem; margin-top: 20px;
+    display: flex; align-items: center; gap: 10px; padding: 15px 30px;
+}
+.btn-google:hover { background: #f1f1f1; transform: scale(1.05); }
+
+/* Barra do Usuário (Topo) */
+.user-info {
+    position: absolute; top: 20px; right: 20px;
+    display: flex; align-items: center; gap: 10px;
+    background: #222; padding: 8px 15px; border-radius: 30px; border: 1px solid #333;
+}
+.user-info img { width: 30px; height: 30px; border-radius: 50%; }
+.user-info span { font-size: 0.9rem; color: #ccc; }
+.btn-logout { background: #ff4444; color: #fff; font-size: 0.8rem; padding: 5px 10px; }
+
+/* Ajuste Mobile */
+@media (max-width: 600px) {
+    .user-info { position: static; justify-content: center; margin-bottom: 20px; }
+}
