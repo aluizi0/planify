@@ -37,11 +37,9 @@ export function Notes({ userId }) {
 
   return (
     <div className="notes-card">
-      <h3>Anotações Importantes</h3>
-      
       <textarea 
         className="notes-input"
-        placeholder="Escreva suas ideias... (Salva automático ao clicar fora)"
+        placeholder="Escreva suas ideias... (Salva automático)"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         onBlur={handleBlur}
