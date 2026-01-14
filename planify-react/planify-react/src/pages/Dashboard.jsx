@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/firebase';
 import { 
-  collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, orderBy 
+  collection, addDoc, deleteDoc, doc, onSnapshot, query, where 
 } from 'firebase/firestore';
-import { FaSignOutAlt, FaPlus, FaTrash, FaCopy, FaPlay, FaRedo, FaStop } from 'react-icons/fa';
+import { FaSignOutAlt, FaPlus, FaTrash, FaCopy } from 'react-icons/fa';
 import '../styles/Dashboard.css';
 import { FocusTimer } from '../components/FocusTimer'; 
 import { Notes } from '../components/Notes';
@@ -14,14 +14,14 @@ export function Dashboard({ user, onLogout }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
 
-  // Carregar tarefas do Firestore em Tempo Real
+  // 1. CARREGAR TAREFAS (Correção: Ordenação feita no JavaScript para evitar erro de índice)
   useEffect(() => {
     if (!user) return;
     
+    // Consulta simplificada para evitar bloqueios do Firebase
     const q = query(
       collection(db, "tasks"),
-      where("userId", "==", user.uid), // Garante que só carrega as tarefas DESSE usuário
-      orderBy("createdAt", "desc")
+      where("userId", "==", user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -29,46 +29,58 @@ export function Dashboard({ user, onLogout }) {
         id: doc.id,
         ...doc.data()
       }));
-      setTasks(tasksData);
+      // Ordena aqui no cliente (mais seguro para agora)
+      // Ordena por Hora e depois por Ordem de Criação
+      const sortedTasks = tasksData.sort((a, b) => {
+         if (a.time < b.time) return -1;
+         if (a.time > b.time) return 1;
+         return 0;
+      });
+      setTasks(sortedTasks);
+    }, (error) => {
+      console.error("Erro ao buscar tarefas:", error);
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  // Adicionar Tarefa
+  // 2. ADICIONAR TAREFA
   const handleAddTask = async (taskText, time) => {
-    if (!taskText.trim()) return;
+    if (!taskText) return;
+    
     try {
       await addDoc(collection(db, "tasks"), {
         text: taskText,
-        day: selectedDay,
+        day: selectedDay, // Usa o dia selecionado ao abrir o modal
         time: time || '',
         userId: user.uid,
-        createdAt: new Date()
+        createdAt: new Date().toISOString()
       });
-      setIsModalOpen(false);
+      setIsModalOpen(false); // Fecha o modal
     } catch (error) {
-      console.error("Erro ao adicionar:", error);
+      console.error("Erro ao salvar no banco:", error);
+      alert("Erro ao salvar. Verifique se você está logado.");
     }
   };
 
-  // Deletar Tarefa
   const handleDelete = async (id) => {
-    if (window.confirm("Tem certeza que deseja excluir?")) {
+    if (window.confirm("Excluir tarefa?")) {
       await deleteDoc(doc(db, "tasks", id));
     }
   };
 
-  // Copiar Tarefa
   const handleCopy = async (task) => {
-    const newText = `${task.text} (Cópia)`;
-    await addDoc(collection(db, "tasks"), {
-      text: newText,
-      day: task.day,
-      time: task.time,
-      userId: user.uid,
-      createdAt: new Date()
-    });
+    try {
+        await addDoc(collection(db, "tasks"), {
+        text: task.text, // Copia sem o sufixo (Cópia) para ficar mais limpo
+        day: task.day,
+        time: task.time,
+        userId: user.uid,
+        createdAt: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error("Erro ao copiar", error);
+    }
   };
 
   const openModal = (day) => {
@@ -80,16 +92,15 @@ export function Dashboard({ user, onLogout }) {
 
   return (
     <div className="dashboard-container">
-      {/* --- Luzes Atmosféricas de Fundo --- */}
+      {/* Orbs de fundo */}
       <span className="orb orb-1"></span>
       <span className="orb orb-2"></span>
-      <span className="orb orb-3"></span>
 
-      {/* Header Transparente */}
+      {/* Header */}
       <header className="dashboard-header">
         <div className="user-info">
           {user.photoURL && <img src={user.photoURL} alt="User" className="user-avatar" referrerPolicy="no-referrer" />}
-          <div style={{ textAlign: 'center' }}>
+          <div>
             <span className="greeting">Olá,</span>
             <h2>{user.displayName}</h2>
           </div>
@@ -99,30 +110,29 @@ export function Dashboard({ user, onLogout }) {
         </button>
       </header>
 
-      {/* Grid Principal */}
+      {/* Grid */}
       <div className="main-grid">
         
-        {/* Seção Cronograma (Vidro) */}
+        {/* Cronograma */}
         <section className="schedule-section">
           <div className="week-grid">
             {daysOfWeek.map(day => (
-              <div key={day} className="day-column glass-panel">
+              <div key={day} className="day-column">
                 <h3 className="day-title">{day}</h3>
+                
                 <div className="task-list">
                   {tasks.filter(t => t.day === day).map(task => (
                     <div key={task.id} className="task-card-item">
                       {task.time && <span className="task-time">{task.time}</span>}
                       <span className="task-text">{task.text}</span>
                       <div className="task-actions">
-                        <button onClick={() => handleCopy(task)} className="btn-action btn-copy"><FaCopy /></button>
-                        <button onClick={() => handleDelete(task.id)} className="btn-action btn-delete"><FaTrash /></button>
+                        <button onClick={() => handleCopy(task)} className="btn-action"><FaCopy /></button>
+                        <button onClick={() => handleDelete(task.id)} className="btn-action"><FaTrash /></button>
                       </div>
                     </div>
                   ))}
-                  {tasks.filter(t => t.day === day).length === 0 && (
-                    <p className="empty-msg">Vazio</p>
-                  )}
                 </div>
+
                 <button className="btn-add" onClick={() => openModal(day)}>
                   <FaPlus />
                 </button>
@@ -131,30 +141,29 @@ export function Dashboard({ user, onLogout }) {
           </div>
         </section>
 
-        {/* Seção Timer (Vidro) */}
+        {/* Timer */}
         <section className="timer-section">
-          <div className="focus-card glass-panel">
+          <div className="focus-card">
             <FocusTimer />
           </div>
         </section>
 
-        {/* Seção Notas (Vidro) */}
+        {/* Notas */}
         <section className="notes-section">
-          <div className="notes-card glass-panel">
+          <div className="notes-card">
             <Notes userId={user.uid} />
           </div>
         </section>
 
       </div>
 
-      {isModalOpen && (
-        <TaskModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          onSave={handleAddTask} 
-          day={selectedDay}
-        />
-      )}
+      {/* Modal */}
+      <TaskModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSave={handleAddTask} 
+        day={selectedDay}
+      />
     </div>
   );
 }
