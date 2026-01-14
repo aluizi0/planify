@@ -1,49 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useToast } from '../components/ToastContext'; // Hook de notificação
 
 export function Notes({ userId }) {
   const [note, setNote] = useState('');
-  const [status, setStatus] = useState(''); // Para mostrar "Salvando..."
+  const [loading, setLoading] = useState(true);
+  const { addToast } = useToast();
 
-  // 1. Carregar nota salva ao abrir
+  // 1. Carrega a nota do usuário ao iniciar
   useEffect(() => {
-    if (!userId) return;
-    const loadNote = async () => {
-      const docRef = doc(db, "notes", userId); // Usa o ID do usuário como ID do documento
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setNote(docSnap.data().content);
+    async function fetchNote() {
+      if (!userId) return;
+      try {
+        const docRef = doc(db, "notes", userId); // Usa o ID do usuário como ID do documento
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setNote(docSnap.data().content || '');
+        }
+      } catch (error) {
+        console.error("Erro ao buscar notas:", error);
+      } finally {
+        setLoading(false);
       }
-    };
-    loadNote();
+    }
+    fetchNote();
   }, [userId]);
 
-  // 2. Salvar quando perder o foco (onBlur)
-  const handleBlur = async () => {
+  // 2. Salva automático quando o usuário clica fora (onBlur)
+  const handleSave = async () => {
     if (!userId) return;
-    setStatus('Salvando...');
     try {
       await setDoc(doc(db, "notes", userId), {
         content: note,
         updatedAt: new Date()
       });
-      setStatus('Salvo!');
-      setTimeout(() => setStatus(''), 2000); // Limpa msg depois de 2s
-    } catch (e) {
-      setStatus('Erro ao salvar');
+      // Opcional: Avisar que salvou (pode ser chato se aparecer toda hora, então deixei comentado)
+      // addToast("Notas salvas!", "info"); 
+    } catch (error) {
+      console.error("Erro ao salvar nota:", error);
+      addToast("Erro ao salvar anotação.", "error");
     }
   };
 
   return (
-    <div className="notes-card">
-      <textarea 
-        className="notes-input"
-        placeholder="Escreva suas ideias... (Salva automático)"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        onBlur={handleBlur}
-      ></textarea>
-    </div>
+    <>  
+        {/* Área de texto transparente */}
+        <textarea
+            className="notes-input"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            onBlur={handleSave} // <--- A Mágica: Salva ao sair do campo
+            placeholder={loading ? "Carregando..." : "Escreva suas ideias... (Salva automático ao clicar fora)"}
+            spellCheck="false"
+        />
+    </>
   );
 }
