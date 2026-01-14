@@ -90,6 +90,11 @@ export function Dashboard({ user, onLogout }) {
   // 4. DELETAR COM ALERTA
   const handleConfirmDelete = async (targetDays) => {
     if (!taskToDelete) return;
+
+    if (!targetDays || targetDays.length === 0) {
+        return; // Se chegou vazio, cancela tudo e não mostra Toast
+    }
+    
     try {
         const batch = writeBatch(db);
         const q = query(collection(db, "tasks"), where("userId", "==", user.uid), where("text", "==", taskToDelete.text));

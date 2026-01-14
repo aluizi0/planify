@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Adicionei useEffect
 import { FaTimes } from 'react-icons/fa';
 
 export function DeleteModal({ isOpen, onClose, onConfirm, task }) {
-  // Já inicia com o dia da tarefa selecionado, pois se clicou em excluir,
-  // no mínimo quer excluir do dia atual.
-  const [selectedDays, setSelectedDays] = useState(task ? [task.day] : []);
+  const [selectedDays, setSelectedDays] = useState([]);
   const daysOfWeek = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+
+  // Atualiza os dias selecionados sempre que o modal abre ou a tarefa muda
+  useEffect(() => {
+    if (isOpen && task) {
+        setSelectedDays([task.day]); // Começa selecionando o dia atual da tarefa
+    }
+  }, [isOpen, task]);
 
   if (!isOpen) return null;
 
   const toggleDay = (day) => {
     if (selectedDays.includes(day)) {
-      // Impede desmarcar tudo (tem que excluir de pelo menos um lugar)
-      if (selectedDays.length === 1) return; 
       setSelectedDays(selectedDays.filter(d => d !== day));
     } else {
       setSelectedDays([...selectedDays, day]);
@@ -20,6 +23,12 @@ export function DeleteModal({ isOpen, onClose, onConfirm, task }) {
   };
 
   const handleConfirm = () => {
+    // --- VALIDAÇÃO DE SEGURANÇA ---
+    if (selectedDays.length === 0) {
+      alert("Selecione pelo menos um dia para excluir.");
+      return; // Para a função aqui. Não chama o onConfirm.
+    }
+    
     onConfirm(selectedDays);
     setSelectedDays([]); 
   };
@@ -42,7 +51,6 @@ export function DeleteModal({ isOpen, onClose, onConfirm, task }) {
                         onClick={() => toggleDay(day)}
                         style={{
                             ...styles.dayBox,
-                            // Visual de "selecionado para morte": Branco
                             background: isSelected ? '#fff' : '#1a1a1a',
                             color: isSelected ? '#000' : '#fff',
                             borderColor: isSelected ? '#fff' : '#333'
@@ -93,7 +101,7 @@ const styles = {
   },
   deleteBtn: {
     width: '100%', padding: '12px',
-    background: '#ff3333', // Vermelho para indicar perigo
+    background: '#ff3333',
     color: '#fff', border: 'none', borderRadius: '8px',
     fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem'
   }

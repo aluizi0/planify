@@ -1,18 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlay, FaPause, FaRedo, FaPen } from 'react-icons/fa';
-import { useToast } from '../components/ToastContext'; // Certifique-se que o caminho está certo
+import { FaPlay, FaPause, FaRedo, FaClock, FaPen } from 'react-icons/fa';
+// 👇 Verifique se o caminho está correto. Se criou na pasta contexts, use '../contexts/ToastContext'
+import { useToast } from '../components/ToastContext'; 
 
 export function FocusTimer() {
-  const { addToast } = useToast(); // Hook de notificação
+  const { addToast } = useToast();
   
-  const [minutes, setMinutes] = useState(25);
+  // --- MUDANÇA AQUI: Inicia com 30 minutos ---
+  const [minutes, setMinutes] = useState(30);
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
-  
-  // Estados de Edição
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(25);
+  
+  // --- MUDANÇA AQUI: Valor de edição padrão também é 30 ---
+  const [editValue, setEditValue] = useState(30);
+  
+  const [dragStart, setDragStart] = useState(null);
 
+  // --- FUNÇÃO PARA GERAR O SOM BIP BIP ---
+  const playDoubleBeep = () => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      
+      const ctx = new AudioContext();
+      const beep = (startTime) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine'; 
+        osc.frequency.value = 880; 
+        gain.gain.setValueAtTime(0.1, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+        osc.start(startTime);
+        osc.stop(startTime + 0.15);
+      };
+
+      const now = ctx.currentTime;
+      beep(now);          
+      beep(now + 0.25);   
+      
+    } catch (e) {
+      console.error("Erro ao tocar som:", e);
+    }
+  };
+
+  // --- LÓGICA DO TIMER ---
   useEffect(() => {
     let interval = null;
 
@@ -20,110 +54,137 @@ export function FocusTimer() {
       interval = setInterval(() => {
         if (seconds === 0) {
           if (minutes === 0) {
-            // --- O TIMER ACABOU AQUI ---
-            setIsActive(false);
+            // ACABOU
             clearInterval(interval);
-            
-            // Dispara o alerta visual
+            setIsActive(false);
+            playDoubleBeep();
             addToast("Tempo de foco finalizado! Parabéns!", "info");
-            
-            // Opcional: Tocar um som de notificação do navegador
-            // const audio = new Audio('url_do_som.mp3');
-            // audio.play();
-
           } else {
-            setMinutes(minutes - 1);
+            setMinutes((prev) => prev - 1);
             setSeconds(59);
           }
         } else {
-          setSeconds(seconds - 1);
+          setSeconds((prev) => prev - 1);
         }
       }, 1000);
-    } 
+    }
 
     return () => clearInterval(interval);
-  }, [isActive, seconds, minutes, addToast]);
+  }, [isActive, minutes, seconds, addToast]); 
 
-  // Controles do Timer
+  // --- CONTROLES ---
   const toggleTimer = () => setIsActive(!isActive);
-  
+
+  // --- MUDANÇA AQUI: Reset volta para o valor editado (agora padrão 30) ---
   const resetTimer = () => {
     setIsActive(false);
-    setMinutes(editValue); // Volta para o valor definido (padrão 25 ou o editado)
+    setMinutes(parseInt(editValue) || 30); // Garante voltar para 30 se der erro
     setSeconds(0);
   };
 
-  // Funções de Edição
+  // --- EDIÇÃO ---
   const handleEditClick = () => {
     setIsEditing(true);
     setEditValue(minutes);
+    setDragStart(null);
+  };
+
+  const handleEditChange = (e) => {
+    const val = e.target.value;
+    if (val === '' || parseInt(val) >= 0) {
+        setEditValue(val);
+    }
   };
 
   const handleEditSave = () => {
     setIsEditing(false);
-    const newMin = parseInt(editValue) || 25;
-    // Garante que o valor esteja entre 1 e 999 minutos
-    const validMin = Math.max(1, Math.min(999, newMin));
+    let newMin = parseInt(editValue);
     
-    setMinutes(validMin);
-    setEditValue(validMin); // Atualiza o valor padrão de reset
+    // Validação
+    if (isNaN(newMin) || newMin < 1) newMin = 1;
+    newMin = Math.min(999, newMin);
+
+    setMinutes(newMin);
+    setEditValue(newMin);
     setSeconds(0);
     setIsActive(false);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleEditSave();
+    if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
   };
 
+  // --- ARRASTAR (DRAG) ---
+  const handleMouseDown = (e) => setDragStart(e.clientY);
+
+  const handleMouseMove = (e) => {
+    if (dragStart === null || !isEditing) return;
+    const delta = dragStart - e.clientY;
+    const step = Math.floor(delta / 10);
+    
+    if (step !== 0) {
+      const currentVal = parseInt(editValue) || 0;
+      let newValue = currentVal + step;
+      newValue = Math.max(1, Math.min(999, newValue));
+      setEditValue(newValue);
+      setDragStart(e.clientY);
+    }
+  };
+
+  const handleMouseUp = () => setDragStart(null);
+
+  // --- RENDER ---
   return (
-    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%'}}>
-      
+    <div className="timer-container" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height:'100%', justifyContent:'center'}}>
       <h3 className="timer-label">Tempo de Foco</h3>
       
-      {isEditing ? (
-        /* MODO EDIÇÃO: Input numérico */
-        <div className="timer-display-group">
-          <input 
-            className="timer-input-edit"
-            type="number" 
-            value={editValue} 
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleEditSave} // Salva ao clicar fora
-            onKeyDown={handleKeyDown} // Salva ao dar Enter
-            autoFocus
-          />
-          <button className="btn-ok" onClick={handleEditSave}>OK</button>
-        </div>
-      ) : (
-        /* MODO VISUALIZAÇÃO: Números Grandes */
-        <div className="timer-display-group">
-          <span className="timer-display">
-            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
-          </span>
-          
-          {/* Botão de Editar (Lápis) */}
-          <button 
-            className="btn-action" 
-            onClick={handleEditClick} 
-            title="Editar tempo"
-            style={{position:'absolute', right: '-30px', top: '10px'}}
+      <div className="timer-wrapper" style={{margin: '20px 0'}}>
+        {isEditing ? (
+          <div 
+            className="timer-edit-box"
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            style={{display: 'flex', alignItems: 'center', gap: '5px'}}
           >
-            <FaPen size={12}/>
-          </button>
-        </div>
-      )}
+            <input 
+              type="number" 
+              className="timer-input-edit"
+              value={editValue} 
+              onChange={handleEditChange}
+              onBlur={handleEditSave}
+              onKeyDown={handleKeyDown}
+              onMouseDown={handleMouseDown}
+              autoFocus
+              min="1"
+              style={{ cursor: 'ns-resize' }}
+            />
+            <button className="btn-ok" onClick={handleEditSave} style={{fontSize: '0.8rem'}}>OK</button>
+          </div>
+        ) : (
+          <div 
+            className="timer-display-group" 
+            onClick={handleEditClick} 
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+            title="Clique para editar"
+          >
+            <FaClock size={20} color="#fff" style={{opacity: 0.5}} />
+            <span className="timer-display">
+              {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+            </span>
+          </div>
+        )}
+      </div>
 
-      {/* Botões de Controle */}
       <div className="timer-controls">
-        <button className="timer-btn-primary" onClick={toggleTimer}>
-          {isActive ? <FaPause /> : <FaPlay style={{marginLeft:'4px'}} />}
+        <button className={`timer-btn-primary ${isActive ? 'active' : ''}`} onClick={toggleTimer}>
+          {isActive ? <FaPause /> : <FaPlay style={{marginLeft:'4px'}}/>}
         </button>
-        
-        <button className="timer-btn-secondary" onClick={resetTimer} title="Reiniciar">
+        <button className="timer-btn-secondary" onClick={resetTimer} title="Reiniciar Timer">
           <FaRedo />
         </button>
       </div>
-      
     </div>
   );
 }
