@@ -5,14 +5,13 @@ export function Header({ user, onLogout }) {
   return (
     <header style={styles.header}>
       <div style={styles.userInfo}>
-        {/* Adicionei referrerPolicy e objectFit para corrigir o bug visual */}
         <img 
             src={user.photoURL} 
             alt="User" 
             style={styles.avatar} 
             referrerPolicy="no-referrer" 
         />
-        <div>
+        <div style={{ textAlign: 'center' }}> {/* Centraliza o texto */}
             <span style={styles.greeting}>Olá,</span>
             <h3 style={styles.name}>{user.displayName}</h3>
         </div>

@@ -1,186 +1,160 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '../components/Header';
-import { FocusTimer } from '../components/FocusTimer';
+import { db } from '../services/firebase';
+import { 
+  collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, orderBy 
+} from 'firebase/firestore';
+import { FaSignOutAlt, FaPlus, FaTrash, FaCopy, FaPlay, FaRedo, FaStop } from 'react-icons/fa';
+import '../styles/Dashboard.css';
+import { FocusTimer } from '../components/FocusTimer'; 
 import { Notes } from '../components/Notes';
 import { TaskModal } from '../components/TaskModal';
-import { FaPlus, FaTrash, FaCopy, FaPaste } from 'react-icons/fa'; // Adicionei FaCopy e FaPaste
-import '../styles/Dashboard.css';
-
-import { db } from '../services/firebase';
-import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import Toastify from 'toastify-js'; // Importação do Toastify
-
-const daysOfWeek = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
 
 export function Dashboard({ user, onLogout }) {
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(null);
-  
-  // NOVO: Estado para guardar a tarefa copiada
-  const [copiedTask, setCopiedTask] = useState(null);
+  const [selectedDay, setSelectedDay] = useState('');
 
-  // --- 0. FUNÇÃO AUXILIAR DE TOAST ---
-  const showToast = (message, type) => {
-    let bg;
-    if (type === "success") bg = "#00b09b"; // Verde
-    else if (type === "error") bg = "#ff5f6d"; // Vermelho
-    else bg = "#444"; // Neutro (para copiar)
-
-    Toastify({
-      text: message,
-      duration: 3000,
-      gravity: "top", // top or bottom
-      position: "right", // left, center or right
-      style: {
-        background: bg,
-        borderRadius: "8px",
-        boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-        fontWeight: "600"
-      }
-    }).showToast();
-  };
-
-  // 1. CARREGAR TAREFAS
+  // Carregar tarefas do Firestore em Tempo Real
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, "tasks"), where("userId", "==", user.uid));
+    
+    const q = query(
+      collection(db, "tasks"),
+      where("userId", "==", user.uid), // Garante que só carrega as tarefas DESSE usuário
+      orderBy("createdAt", "desc")
+    );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tasksArray = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-      setTasks(tasksArray);
+      const tasksData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setTasks(tasksData);
     });
+
     return () => unsubscribe();
   }, [user]);
 
-  // 2. MODAL E SALVAR
-  const handleOpenModal = (day) => {
+  // Adicionar Tarefa
+  const handleAddTask = async (taskText, time) => {
+    if (!taskText.trim()) return;
+    try {
+      await addDoc(collection(db, "tasks"), {
+        text: taskText,
+        day: selectedDay,
+        time: time || '',
+        userId: user.uid,
+        createdAt: new Date()
+      });
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao adicionar:", error);
+    }
+  };
+
+  // Deletar Tarefa
+  const handleDelete = async (id) => {
+    if (window.confirm("Tem certeza que deseja excluir?")) {
+      await deleteDoc(doc(db, "tasks", id));
+    }
+  };
+
+  // Copiar Tarefa
+  const handleCopy = async (task) => {
+    const newText = `${task.text} (Cópia)`;
+    await addDoc(collection(db, "tasks"), {
+      text: newText,
+      day: task.day,
+      time: task.time,
+      userId: user.uid,
+      createdAt: new Date()
+    });
+  };
+
+  const openModal = (day) => {
     setSelectedDay(day);
     setIsModalOpen(true);
   };
 
-  const handleSaveTask = async (day, time, activity) => {
-    try {
-      await addDoc(collection(db, "tasks"), {
-        userId: user.uid,
-        day, time, activity, createdAt: new Date()
-      });
-      setIsModalOpen(false);
-      showToast("Tarefa adicionada com sucesso!", "success"); // Toast Verde
-    } catch (error) {
-      showToast("Erro ao salvar.", "error");
-    }
-  };
-
-  // 3. DELETAR
-  const handleDeleteTask = async (id) => {
-    // Removemos o window.confirm para ficar mais ágil, ou pode manter se preferir
-    // O toast já serve como feedback visual
-    try {
-      await deleteDoc(doc(db, "tasks", id));
-      showToast("Tarefa removida.", "error"); // Toast Vermelho
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // 4. COPIAR TAREFA
-  const handleCopyTask = (task) => {
-    setCopiedTask({ time: task.time, activity: task.activity });
-    showToast("Tarefa copiada! Escolha onde colar.", "neutral");
-  };
-
-  // 5. COLAR TAREFA
-  const handlePasteTask = async (targetDay) => {
-    if (!copiedTask) return;
-    try {
-      await addDoc(collection(db, "tasks"), {
-        userId: user.uid,
-        day: targetDay,
-        time: copiedTask.time,
-        activity: copiedTask.activity,
-        createdAt: new Date()
-      });
-      showToast(`Colado em ${targetDay.toUpperCase()}!`, "success");
-      setCopiedTask(null); // Limpa a memória depois de colar (opcional)
-    } catch (error) {
-      showToast("Erro ao colar.", "error");
-    }
-  };
+  const daysOfWeek = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
 
   return (
     <div className="dashboard-container">
-      <Header user={user} onLogout={onLogout} />
+      {/* --- Luzes Atmosféricas de Fundo --- */}
+      <span className="orb orb-1"></span>
+      <span className="orb orb-2"></span>
+      <span className="orb orb-3"></span>
 
+      {/* Header Transparente */}
+      <header className="dashboard-header">
+        <div className="user-info">
+          {user.photoURL && <img src={user.photoURL} alt="User" className="user-avatar" referrerPolicy="no-referrer" />}
+          <div style={{ textAlign: 'center' }}>
+            <span className="greeting">Olá,</span>
+            <h2>{user.displayName}</h2>
+          </div>
+        </div>
+        <button onClick={onLogout} className="btn-logout">
+          <FaSignOutAlt /> Sair
+        </button>
+      </header>
+
+      {/* Grid Principal */}
       <div className="main-grid">
-        <div className="schedule-section">
+        
+        {/* Seção Cronograma (Vidro) */}
+        <section className="schedule-section">
           <div className="week-grid">
-            {daysOfWeek.map((day) => (
-              <div key={day} className="day-column">
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #444', marginBottom:'10px', paddingBottom:'5px'}}>
-                    <h3 className="day-title" style={{border:'none', margin:0, padding:0}}>{day}</h3>
-                    
-                    {/* Botão de Colar (Só aparece se tiver algo copiado) */}
-                    {copiedTask && (
-                        <button 
-                            onClick={() => handlePasteTask(day)}
-                            className="btn-paste"
-                            title="Colar aqui"
-                        >
-                            <FaPaste /> Colar
-                        </button>
-                    )}
-                </div>
-                
+            {daysOfWeek.map(day => (
+              <div key={day} className="day-column glass-panel">
+                <h3 className="day-title">{day}</h3>
                 <div className="task-list">
-                  {tasks
-                    .filter(t => t.day === day)
-                    .sort((a, b) => a.time.localeCompare(b.time))
-                    .map(task => (
-                        <div key={task.id} className="task-card-item">
-                            <span className="task-time">{task.time}</span>
-                            <span className="task-text">{task.activity}</span>
-                            
-                            <div className="task-actions">
-                                {/* Botão Copiar */}
-                                <button onClick={() => handleCopyTask(task)} className="btn-action btn-copy" title="Copiar">
-                                    <FaCopy />
-                                </button>
-                                {/* Botão Deletar */}
-                                <button onClick={() => handleDeleteTask(task.id)} className="btn-action btn-delete" title="Excluir">
-                                    <FaTrash />
-                                </button>
-                            </div>
-                        </div>
-                    ))
-                  }
+                  {tasks.filter(t => t.day === day).map(task => (
+                    <div key={task.id} className="task-card-item">
+                      {task.time && <span className="task-time">{task.time}</span>}
+                      <span className="task-text">{task.text}</span>
+                      <div className="task-actions">
+                        <button onClick={() => handleCopy(task)} className="btn-action btn-copy"><FaCopy /></button>
+                        <button onClick={() => handleDelete(task.id)} className="btn-action btn-delete"><FaTrash /></button>
+                      </div>
+                    </div>
+                  ))}
                   {tasks.filter(t => t.day === day).length === 0 && (
-                     <p className="empty-msg">Vazio</p>
+                    <p className="empty-msg">Vazio</p>
                   )}
                 </div>
-
-                <button className="btn-add" onClick={() => handleOpenModal(day)}>
-                    <FaPlus />
+                <button className="btn-add" onClick={() => openModal(day)}>
+                  <FaPlus />
                 </button>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="timer-section">
-          <FocusTimer />
-        </div>
+        {/* Seção Timer (Vidro) */}
+        <section className="timer-section">
+          <div className="focus-card glass-panel">
+            <FocusTimer />
+          </div>
+        </section>
 
-        <div className="notes-section">
-          <Notes userId={user.uid} />
-        </div>
+        {/* Seção Notas (Vidro) */}
+        <section className="notes-section">
+          <div className="notes-card glass-panel">
+            <Notes userId={user.uid} />
+          </div>
+        </section>
+
       </div>
 
-      <TaskModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        day={selectedDay}
-        onSave={handleSaveTask}
-      />
+      {isModalOpen && (
+        <TaskModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSave={handleAddTask} 
+          day={selectedDay}
+        />
+      )}
     </div>
   );
 }

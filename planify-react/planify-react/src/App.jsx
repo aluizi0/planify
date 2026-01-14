@@ -33,9 +33,8 @@ function App() {
   if (loading) return <div className="loading-screen" style={{background: '#000', color: '#fff', height: '100vh', display:'flex', justifyContent:'center', alignItems:'center'}}>Carregando...</div>;
 
   return (
-    <div style={{ background: '#000000', minHeight: '100vh' }}>
+    <div style={{ background: '#000000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {!user ? (
-        // 👇 AQUI ESTAVA O ERRO: Faltava passar o onLogin={handleLogin}
         <Login onLogin={handleLogin} />
       ) : (
         <Dashboard user={user} onLogout={handleLogout} />

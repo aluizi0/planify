@@ -24,16 +24,7 @@ export function TaskModal({ isOpen, onClose, onSave, day }) {
             <button onClick={onClose} style={styles.closeBtn}><FaTimes /></button>
         </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-            <label style={styles.label}>Horário</label>
-            <input 
-                type="time" 
-                required
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                style={styles.input} 
-            />
-
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <label style={styles.label}>Atividade</label>
             <input 
                 type="text" 
@@ -41,6 +32,15 @@ export function TaskModal({ isOpen, onClose, onSave, day }) {
                 required
                 value={activity}
                 onChange={(e) => setActivity(e.target.value)}
+                style={styles.input} 
+            />
+
+            <label style={styles.label}>Horário</label>
+            <input 
+                type="time" 
+                required
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
                 style={styles.input} 
             />
 
