@@ -1,0 +1,139 @@
+/* Fundo Geral Escuro */
+.login-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #161930; /* Azul noturno bem escuro */
+    position: relative;
+    overflow: hidden;
+}
+
+/* O Cartão de Vidro */
+.glass-card {
+    width: 90%;
+    max-width: 500px;
+    padding: 60px;
+    background: rgba(255, 255, 255, 0.05); /* Transparencia */
+    backdrop-filter: blur(15px); /* O Desfoque mágico */
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    text-align: center;
+    color: white;
+}
+
+/* Tipografia */
+h2 { margin-bottom: 5px; font-weight: 600; }
+.highlight { color: #00ff99; } /* O verde do seu logo */
+.subtitle { font-size: 0.85rem; color: #aaa; margin-bottom: 30px; }
+
+/* Inputs Estilo Material (Linha embaixo) */
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    outline: none;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    border-bottom: 1px solid #00ff99;
+}
+
+/* Label Flutuante */
+.input-group label {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    color: #aaa;
+    pointer-events: none;
+    transition: 0.3s ease all;
+    font-size: 1rem;
+}
+
+/* Efeito quando clica ou tem texto */
+.input-group input:focus ~ label,
+.input-group input:not(:placeholder-shown) ~ label {
+    top: -15px;
+    font-size: 0.8rem;
+    color: #00ff99;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0;
+    top: 10px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+/* Botões */
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(90deg, #00c6ff, #0072ff); /* Azul Cyan igual a foto */
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: transform 0.2s;
+}
+
+.btn-primary:hover { transform: scale(1.02); }
+
+.divider { margin: 20px 0; font-size: 0.8rem; color: #555; }
+
+.btn-google-glass {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.3s;
+}
+.btn-google-glass:hover { background: rgba(255, 255, 255, 0.2); }
+
+.footer-text { margin-top: 20px; font-size: 0.8rem; color: #aaa; }
+.footer-text a { color: #00c6ff; text-decoration: none; font-weight: bold; }
+
+/* Bolas de Luz (Background FX) */
+.glow-circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 1;
+}
+.circle-1 {
+    width: 300px; height: 300px;
+    background: #eceef0;
+    top: -50px; left: -50px;
+    opacity: 0.4;
+}
+.circle-2 {
+    width: 250px; height: 250px;
+    background: #f0f3f2;
+    bottom: -50px; right: -50px;
+    opacity: 0.3;
+}

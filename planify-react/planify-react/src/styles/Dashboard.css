@@ -1,0 +1,369 @@
+/* --- LAYOUT GLOBAL (Full Screen) --- */
+.dashboard-container {
+    width: 100vw;       /* Ocupa toda a largura */
+    height: 100vh;      /* Ocupa toda a altura */
+    background-color: #0f172a; /* Fundo base da página */
+    color: white;
+    padding: 30px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Remove rolagem da página inteira */
+}
+
+/* GRID PRINCIPAL (Correção de Sobreposição + Suas Cores) */
+.main-grid {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    gap: 20px;
+
+    /* DEFINIÇÃO DAS ÁREAS */
+    /* Colunas: 3 partes Cronograma / 1 parte Timer */
+    /* Linhas: Espaço livre (1fr) / 180px fixos para Notas (Resolve o bug visual) */
+    grid-template-columns: 3fr 1fr;
+    grid-template-rows: 1fr 250px;
+    grid-template-areas:
+        "schedule timer"
+        "notes notes";
+}
+
+/* Áreas nomeadas */
+.schedule-section { grid-area: schedule; overflow: hidden; } /* Hidden para o scroll ficar só nas colunas */
+.timer-section { grid-area: timer; }
+.notes-section { grid-area: notes; }
+
+/* --- ESTILO DO CRONOGRAMA --- */
+.week-grid {
+    display: grid;
+    /* Divide em 7 colunas iguais para preencher a tela */
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    height: 100%;
+}
+
+.day-column {
+    /* SUAS CORES AQUI */
+    background: #1616169a;
+    border: 1px solid #333;
+    border-radius: 12px;
+
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    transition: border-color 0.3s;
+    height: 100%; /* Força ocupar a altura disponível */
+    box-sizing: border-box;
+}
+
+/* Hover Cinza (Minimalista) */
+.day-column:hover {
+    border-color: #888;
+}
+
+.day-title {
+    text-align: center; /* Tira do centro e joga pra esquerda */
+    padding-left: 5px; /* Um respiro da borda */
+    color: white;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.task-list {
+    flex: 1;
+    padding: 10px 0;
+    overflow-y: auto; /* Rolagem interna se tiver muitas tarefas */
+}
+
+.empty-msg { text-align: center; color: #444; font-size: 0.8rem; font-style: italic; }
+
+.btn-add {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed #444;
+    color: #666;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-add:hover {
+    border-color: white;
+    color: white;
+    background: #222;
+}
+
+/* --- ESTILO DO TIMER (Com suas cores) --- */
+.focus-card {
+    background: #1616169a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 50px 20px; /* Mais espaço nas laterais */
+
+    /* MUDANÇA AQUI: Tira do centro absoluto */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Começa do topo */
+    align-items: center; /* Mantém horizontalmente no centro (relógio precisa ser centralizado) */
+
+    gap: 10px; /* Cria espaço entre o título, o relógio e os botões */
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* Ajuste fino para o título do timer não colar no topo */
+.focus-card h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    
+    /* MUDANÇA AQUI: Trazendo de volta para o centro */
+    align-self: center; 
+    text-align: center;
+    width: 100%;
+}
+
+.timer-display {
+    font-size: 3.5rem; /* Ajustável dependendo do tamanho da tela */
+    font-weight: bold;
+    font-family: 'Poppins', sans-serif;
+    margin: 20px 0;
+    color: white;
+}
+
+.timer-controls { display: flex; gap: 10px; }
+
+.btn-timer, .btn-timer-reset {
+    background: white;
+    color: black;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+}
+.btn-timer:hover { transform: scale(1.1); }
+.btn-timer-reset { background: #333; color: white; width: 40px; height: 40px; font-size: 1rem; }
+
+/* --- ESTILO DAS NOTAS (Com suas cores) --- */
+.notes-card {
+    /* SUAS CORES AQUI */
+    background: #1616169a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    
+    padding: 15px 20px;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.notes-card h3 { 
+    margin-top: 0; 
+    color: white; 
+    font-size: 0.9rem; 
+    margin-bottom: 10px;
+    text-align: left; /* Garante que fique na esquerda */
+    padding-left: 5px;
+}
+
+.notes-input {
+    flex: 1; /* Ocupa o resto do cartão */
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #ddd;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    resize: none; /* Remove o puxador manual, pois o tamanho é fixo */
+    outline: none;
+    line-height: 1.5;
+}
+
+/* Estilo do Cartão de Tarefa Individual */
+.task-card-item {
+    background: #0f172a; /* Mais escuro para destacar */
+    border: 1px solid #333;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+
+.task-card-item:hover {
+    border-color: #666;
+}
+
+.task-time {
+    color: #888;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.task-text {
+    flex: 1; /* Ocupa o meio */
+    color: white;
+    word-break: break-word;
+}
+
+.btn-delete {
+    background: transparent;
+    border: none;
+    color: #444;
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 2px;
+}
+
+.btn-delete:hover { color: #ff4444; }
+
+/* --- AÇÕES DA TAREFA (Copiar/Deletar) --- */
+.task-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-action {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 4px;
+    border-radius: 4px;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Cor específica para Copiar (Azul/Cyan) */
+.btn-copy { color: #666; }
+.btn-copy:hover { color: #00c6ff; background: rgba(0, 198, 255, 0.1); }
+
+/* Cor específica para Deletar (Vermelho) */
+.btn-delete { color: #666; }
+.btn-delete:hover { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+
+/* --- BOTÃO COLAR (Aparece no topo da coluna) --- */
+.btn-paste {
+    background: #00ff99; /* Verde neon destaque */
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    animation: fadeIn 0.3s ease;
+    text-transform: uppercase;
+}
+
+.btn-paste:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 255, 153, 0.3);
+}
+
+/* --- TIMER EDITÁVEL --- */
+.timer-display.clickable {
+    cursor: pointer;
+    position: relative;
+    transition: 0.2s;
+}
+
+.timer-display.clickable:hover {
+    color: #00ff99; /* Fica verde ao passar o mouse */
+}
+
+.edit-icon {
+    font-size: 1rem;
+    position: absolute;
+    top: 0;
+    right: -20px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.timer-display:hover .edit-icon {
+    opacity: 1; /* Mostra o lápis ao passar o mouse */
+}
+
+/* Formulário de Edição no lugar do relógio */
+.timer-edit-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    height: 84px; /* Mesma altura aproximada do relógio */
+}
+
+.timer-input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #00ff99;
+    color: white;
+    font-size: 3rem;
+    width: 100px;
+    text-align: center;
+    font-weight: bold;
+    outline: none;
+}
+
+.timer-label {
+    font-size: 1rem;
+    color: #888;
+}
+
+.btn-save-timer {
+    background: #00ff99;
+    border: none;
+    color: black;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- RESPONSIVIDADE (Celular) --- */
+@media (max-width: 1024px) {
+    .dashboard-container { height: auto; overflow: auto; }
+    
+    .main-grid {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .week-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 por linha no tablet */
+    }
+}
+
+@media (max-width: 600px) {
+    .week-grid {
+        grid-template-columns: 1fr; /* 1 por linha no celular */
+    }
+}
