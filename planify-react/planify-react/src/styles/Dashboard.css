@@ -74,7 +74,7 @@
     /* 👇 1fr faz o cronograma ocupar TODO o espaço sobrando. 240px reduzido para o timer. */
     grid-template-columns: 1fr 240px; 
     
-    grid-template-rows: 1fr 120px;
+    grid-template-rows: 1fr 150px;
     grid-template-areas: 
         "schedule timer"
         "notes notes";
